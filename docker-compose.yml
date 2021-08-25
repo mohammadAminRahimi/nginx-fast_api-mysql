@@ -1,0 +1,32 @@
+version: '3.7'
+
+services:
+  django_gunicorn:
+    build: ./django
+    #  command: python project/manage.py runserver 0.0.0.0:8000
+    restart: always
+    env_file:
+      - ./django/.env
+        #  volumes:
+            #  - static:/static
+    ports:
+      - 8000:8000
+    depends_on:
+      - mysqldb
+    links:
+      - mysqldb
+        #command: ['python', 'project/manage.py', 'runserver','0.0.0.0:8000']
+  mysqldb:
+    image: mysql
+    restart: always
+    # volumes:
+            #  - ./mysql/scripts:/docker-entrypoint-initdb.d
+            #  - /Users/amin/Documents/mysql:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      - "MYSQL_ROOT_PASSWORD=password"
+      - "MYSQL_DATABASE=family"
+      - "MYSQL_ALLOW_EMPTY_PASSWORD=true"
+volumes:
+  static:
+  mysql_data:
