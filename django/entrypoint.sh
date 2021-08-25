@@ -1,5 +1,5 @@
 #!/bin/sh
-sleep 14
+sleep 20
 python manage.py makemigrations 
 
 python manage.py migrate 
