@@ -1,1 +1,3 @@
-version: '3.7'
+FROM nginx
+
+COPY ./default.conf /etc/nginx/conf.d/default.conf

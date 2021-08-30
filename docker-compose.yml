@@ -27,6 +27,14 @@ services:
       - "MYSQL_ROOT_PASSWORD=password"
       - "MYSQL_DATABASE=family"
       - "MYSQL_ALLOW_EMPTY_PASSWORD=true"
+  nginx:
+    build: ./nginx
+    volumes:
+      - static:/static
+    ports:
+      - "80:80"
+    depends_on:
+      - django_gunicorn
 volumes:
   static:
   mysql_data:
