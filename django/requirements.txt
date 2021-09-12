@@ -46,3 +46,6 @@ zope.interface==5.4.0
 django-probes
 gunicorn==20.0.4
 mysql-connector-python==8.0.26
+HTTPX
+Uvicorn
+uvloop

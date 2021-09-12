@@ -15,15 +15,22 @@ from .serializers import *
 import string
 import random
 
+import asyncio
 
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 
+from asgiref.sync import sync_to_async
+from asgiref.sync import async_to_sync
+
+
+
 
 chema = openapi.Schema(type=openapi.TYPE_STRING,)
 res200 = openapi.Response("returns Authentication token", schema=chema)
 res400 = openapi.Response("invalid request", schema=chema)
+@sync_to_async
 @swagger_auto_schema(methods=['post'], request_body=UserSerializer, responses={200:res200, 400:res400})
 @api_view(('POST',))
 @permission_classes((permissions.AllowAny,))
@@ -32,12 +39,16 @@ def register_person(request):
     if serializer.is_valid():
         usr = serializer.save()
         data = {}
-        data['token'] = Token.objects.get(user=usr).key
+        loop = asyncio.get_event_loop()
+        async_function = sync_to_async(Token.objects.get(user=usr))
+        task = loop.create_task(async_function())
+        usr = await task
+        data['token'] = usr.key
+        print(usr.key)
+        # data['token'] = Token.objects.get(user=usr).key
         return Response(data, status=200)
     print(serializer.errors)
     return Response("invalid request",status=400)
-
-
 
 
 
@@ -48,11 +59,10 @@ res401 = openapi.Response("Unauthorized client", schema=chema)
 res201 = openapi.Response("created", schema=chema)
 @swagger_auto_schema(methods=['post'], request_body=CreateFamilySerializer, responses={400: res400, 401: res401, 201: res201})
 @api_view(('POST',))
-def create_family(request):
+async def create_family(request):
     serializer = CreateFamilySerializer(data=request.data)
     if not serializer.is_valid():
         return Response("invalid request",status=400)
-
     authentication = False
     parent1 = user.objects.get(username=serializer.data["parents_username"][0])
     if request.user.username == parent1.username:
@@ -101,7 +111,7 @@ res401 = openapi.Response("Unauthorized client", schema=chema)
 res200 = openapi.Response("package selected or changed", schema=chema)
 @swagger_auto_schema(methods=['post'], request_body=CreateFamilySerializer, responses={400: res400, 401: res401, 20: res200})
 @api_view(('POST',))
-def select_package(request):# selecting or changing package of a sonn
+async def select_package(request):# selecting or changing package of a sonn
     serializer = PackageSelectionSerializer(data=request.data)
     if not serializer.is_valid():
         return Response("invalid request", status=400)   
@@ -124,7 +134,7 @@ res400 = openapi.Response("invalid request", schema=chema)
 res401 = openapi.Response("Unauthorized client", schema=chema)
 res200 = openapi.Response("package deleted", schema=chema)
 @api_view(('POST',))
-def delete_package(request):
+async def delete_package(request):
     serializer = PackageDeletionSerializer(data=request.data)
     if not serializer.is_valid():
         return Response("invalid request", status=400)   
